@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEPT 中級英檢挑戰賽｜小六生專屬互動模擬測驗</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-indigo-200 selection:text-indigo-900">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="app.goHome()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-extrabold text-lg shadow-md">
+          G2
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-base sm:text-lg leading-tight">GEPT 中級挑戰賽</h1>
+          <p class="text-xs text-slate-500 hidden sm:block">初級通過專屬進階訓練營</p>
+        </div>
+      </div>
+
+      <!-- Status / Controls in Header -->
+      <div class="flex items-center gap-2 sm:gap-4">
+        <div id="header-timer-box" class="hidden items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold">
+          <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span id="timer-display">20:00</span>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold border border-indigo-100">
+          <span>⭐ XP:</span>
+          <span id="xp-display">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main id="app-container" class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <!-- Dynamic Views Rendered Here -->
+  </main>
+
+  <!-- Toast / Message Box (Replaces alert) -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-medium border border-slate-700">
+      <span id="toast-icon">💡</span>
+      <span id="toast-message">訊息提示</span>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Modal -->
+  <div id="confirm-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all">
+      <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mb-4">
+        📝
+      </div>
+      <h3 id="modal-title" class="text-xl font-bold text-slate-900 mb-2">確定要交卷嗎？</h3>
+      <p id="modal-desc" class="text-slate-600 text-sm mb-6 leading-relaxed">你還有題目尚未作答，交卷後將會立即計算成績並顯示詳細解析。</p>
+      <div class="flex gap-3 justify-end">
+        <button onclick="app.closeModal()" class="px-4 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition">繼續作答</button>
+        <button id="modal-confirm-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition">確定交卷</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-5 mt-12">
+    <div class="max-w-5xl mx-auto px-4 text-center text-xs text-slate-500">
+      <p>專為小六英檢初級通過者設計 • 銜接全民英檢中級（GEPT Intermediate / CEFR B1-B2）</p>
+      <p class="mt-1 text-slate-400">支援 Web Speech API 英語語音朗讀 • 單一 HTML 檔案可隨時部署至 GitHub Pages</p>
+    </div>
+  </footer>
+
+<script>
+/**
+ * ============================================================================
+ * GEPT INTERMEDIATE QUESTION BANK (20 High-Quality Questions)
+ * Designed specifically for a 6th-grade student bridging Elementary -> Intermediate
+ * ============================================================================
+ */
+const QUESTION_BANK = [
+  // ================= MODULE 1: LISTENING COMPREHENSION (7 Questions) =================
+  // Part 1: 看圖辨義 (Picture Description)
+  {
+    id: 'L1',
+    module: 'listening',
+    part: '看圖辨義',
+    partEn: 'Picture Description',
+    type: 'picture',
+    svgScene: `
+      <svg viewBox="0 0 360 180" class="w-full max-w-md mx-auto rounded-2xl bg-sky-50 border border-sky-200 shadow-inner">
+        <!-- Sky & Sun -->
+        <circle cx="310" cy="35" r="20" fill="#FBBF24" />
+        <!-- Library Building -->
+        <rect x="30" y="55" width="130" height="95" rx="6" fill="#E2E8F0" stroke="#94A3B8" stroke-width="2"/>
+        <polygon points="22,55 95,20 168,55" fill="#64748B"/>
+        <rect x="65" y="65" width="60" height="22" rx="4" fill="#1E293B"/>
+        <text x="95" y="80" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">LIBRARY</text>
+        <!-- Closed Sign -->
+        <rect x="75" y="102" width="40" height="18" rx="3" fill="#EF4444"/>
+        <text x="95" y="114" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">CLOSED</text>
+        <!-- Ground -->
+        <rect x="0" y="150" width="360" height="30" fill="#CBD5E1"/>
+        <!-- Student looking disappointed with backpack & books -->
+        <circle cx="235" cy="95" r="14" fill="#FDBA74"/>
+        <path d="M229 98 Q235 93 241 98" stroke="#7C2D12" stroke-width="2" fill="none"/> <!-- Sad mouth -->
+        <circle cx="230" cy="92" r="1.5" fill="#1E293B"/>
+        <circle cx="240" cy="92" r="1.5" fill="#1E293B"/>
+        <rect x="223" y="110" width="24" height="32" rx="6" fill="#4F46E5"/>
+        <!-- Books in hand -->
+        <rect x="248" y="118" width="16" height="5" fill="#10B981"/>
+        <rect x="248" y="123" width="16" height="5" fill="#F59E0B"/>
+        <!-- Watch / Time bubble -->
+        <rect x="265" y="55" width="72" height="26" rx="13" fill="#FFFFFF" stroke="#94A3B8"/>
+        <text x="301" y="72" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">5:15 PM</text>
+      </svg>
+    `,
+    audioScript: [
+      { speaker: 'Narrator', text: 'Look at the picture. What can we say about the boy?' }
+    ],
+    options: [
+      { label: 'A', text: 'He arrived at the library after it had already closed.' },
+      { label: 'B', text: 'He is borrowing several magazines from the librarian.' },
+      { label: 'C', text: 'He is waiting in a long line to enter the building.' },
+      { label: 'D', text: 'He dropped all of his textbooks on the sidewalk.' }
+    ],
+    answer: 'A',
+    explanation: '圖片中圖書館門口掛著「CLOSED（已打烊）」的牌子，時間是下午 5:15，男孩抱著書露出失望的表情，表示他在圖書館關門後才抵達。',
+    vocabTip: 'arrive at + 小地點（抵達）；already closed（已經關閉，過去完成式用法，中級常考時態概念）。'
+  },
+  {
+    id: 'L2',
+    module: 'listening',
+    part: '看圖辨義',
+    partEn: 'Picture Description',
+    type: 'picture',
+    svgScene: `
+      <svg viewBox="0 0 360 180" class="w-full max-w-md mx-auto rounded-2xl bg-emerald-50 border border-emerald-200 shadow-inner">
+        <!-- Science Fair Banner -->
+        <rect x="60" y="18" width="240" height="30" rx="8" fill="#059669"/>
+        <text x="180" y="38" font-size="13" font-weight="bold" fill="#FFFFFF" text-anchor="middle">ANNUAL SCIENCE FAIR</text>
+        <!-- Table -->
+        <rect x="50" y="120" width="260" height="12" rx="3" fill="#92400E"/>
+        <rect x="70" y="132" width="12" height="38" fill="#78350F"/>
+        <rect x="278" y="132" width="12" height="38" fill="#78350F"/>
+        <!-- Volcano Model -->
+        <polygon points="105,120 130,72 150,72 175,120" fill="#78716C"/>
+        <path d="M130 72 Q140 55 150 72" fill="#EF4444"/>
+        <circle cx="140" cy="56" r="5" fill="#F97316"/>
+        <!-- Girl explaining -->
+        <circle cx="225" cy="78" r="13" fill="#FDBA74"/>
+        <path d="M220 82 Q225 87 230 82" stroke="#7C2D12" stroke-width="2" fill="none"/>
+        <rect x="213" y="92" width="24" height="28" rx="5" fill="#EC4899"/>
+        <!-- Pointer stick -->
+        <line x1="213" y1="102" x2="162" y2="85" stroke="#1E293B" stroke-width="2.5"/>
+        <!-- Trophy -->
+        <text x="275" y="114" font-size="24">🏆</text>
+      </svg>
+    `,
+    audioScript: [
+      { speaker: 'Narrator', text: 'Look at the picture. What is the girl doing?' }
+    ],
+    options: [
+      { label: 'A', text: 'She is cleaning up broken glass in the laboratory.' },
+      { label: 'B', text: 'She is presenting her volcano project at a science fair.' },
+      { label: 'C', text: 'She is painting a landscape picture on the wall.' },
+      { label: 'D', text: 'She is repairng a damaged computer monitor.' }
+    ],
+    answer: 'B',
+    explanation: '上方橫幅寫著「ANNUAL SCIENCE FAIR（年度科學展覽會）」，桌上有火山模型與獎盃，女孩正拿著指揮棒介紹她的作品（presenting her volcano project）。',
+    vocabTip: 'present (v.) 發表、展示（重音在第二音節）；annual (adj.) 每年的、年度的；science fair 科展。'
+  },
+
+  // Part 2: 問答 (Question & Response)
+  {
+    id: 'L3',
+    module: 'listening',
+    part: '問答',
+    partEn: 'Question & Response',
+    type: 'qa',
+    audioScript: [
+      { speaker: 'Speaker A', text: 'Would you mind turning down the volume a little? I am trying to concentrate on my essay.' }
+    ],
+    options: [
+      { label: 'A', text: 'Yes, I really enjoy listening to classical music.' },
+      { label: 'B', text: 'Not at all. Sorry for disturbing you.' },
+      { label: 'C', text: 'No, I haven’t finished writing my essay yet.' },
+      { label: 'D', text: 'Sure, you can turn on the television now.' }
+    ],
+    answer: 'B',
+    explanation: '「Would you mind + V-ing...?」意思是「你介意……嗎？」。如果不介意（願意配合把音量調小），英文要回答「Not at all.（一點也不介意）」並道歉「Sorry for disturbing you.」。這是中級英檢超高頻考題！',
+    vocabTip: 'Would you mind...? 回答「不介意」要用 Not at all. / Of course not.；concentrate on 專注於；disturb 打擾。'
+  },
+  {
+    id: 'L4',
+    module: 'listening',
+    part: '問答',
+    partEn: 'Question & Response',
+    type: 'qa',
+    audioScript: [
+      { speaker: 'Speaker A', text: 'How long does it take to get to the museum by subway?' }
+    ],
+    options: [
+      { label: 'A', text: 'It costs about fifty dollars for a round-trip ticket.' },
+      { label: 'B', text: 'The museum is closed on Mondays and national holidays.' },
+      { label: 'C', text: 'Usually around twenty minutes, unless there is a delay.' },
+      { label: 'D', text: 'You should take Exit 3 and turn left at the corner.' }
+    ],
+    answer: 'C',
+    explanation: '問句以「How long does it take...?（需要花多少時間？）」開頭，回答必須包含時間長度，「Usually around twenty minutes（通常大約二十分鐘）」最符合題意。',
+    vocabTip: 'How long 問時間長度；round-trip ticket 來回票；unless 除非；delay 延誤。'
+  },
+  {
+    id: 'L5',
+    module: 'listening',
+    part: '問答',
+    partEn: 'Question & Response',
+    type: 'qa',
+    audioScript: [
+      { speaker: 'Speaker A', text: 'I heard that the school camping trip has been postponed due to the typhoon.' }
+    ],
+    options: [
+      { label: 'A', text: 'That’s too bad! I was really looking forward to it.' },
+      { label: 'B', text: 'Yes, I packed my sleeping bag yesterday morning.' },
+      { label: 'C', text: 'The weather forecast says it will be sunny all week.' },
+      { label: 'D', text: 'I agree that camping is much cheaper than staying at a hotel.' }
+    ],
+    answer: 'A',
+    explanation: '對方說「聽說學校露營因為颱風而延期（postponed）了」，最自然的回應是表達惋惜：「That’s too bad! I was really looking forward to it.（太可惜了！我原本非常期待的。）」',
+    vocabTip: 'postpone (v.) 延期（= put off）；due to 因為、由於；look forward to + V-ing/N 期待。'
+  },
+
+  // Part 3: 簡短對話 (Short Conversations)
+  {
+    id: 'L6',
+    module: 'listening',
+    part: '簡短對話',
+    partEn: 'Short Conversations',
+    type: 'conversation',
+    audioScript: [
+      { speaker: 'Man', text: 'Excuse me, I bought this jacket here two days ago, but I realized the zipper is broken.' },
+      { speaker: 'Woman', text: 'I’m sorry about that. Do you happen to have the receipt with you? We can exchange it for a new one right away.' },
+      { speaker: 'Man', text: 'Yes, here it is. Thank you so much for your help.' },
+      { speaker: 'Narrator', text: 'Question: What does the man want to do?' }
+    ],
+    options: [
+      { label: 'A', text: 'Get a refund for a pair of shoes.' },
+      { label: 'B', text: 'Replace a damaged jacket with a new one.' },
+      { label: 'C', text: 'Ask for directions to the clothing store.' },
+      { label: 'D', text: 'Apply for a part-time job at the counter.' }
+    ],
+    answer: 'B',
+    explanation: '男士說外套的拉鍊壞了（the zipper is broken），店員詢問是否有收據（receipt）並表示可以立刻更換一件新的（exchange it for a new one），對應選項 B 的「replace... with a new one」。',
+    vocabTip: 'zipper 拉鍊；receipt 收據（注意 p 不發音）；exchange A for B 用 A 換 B；replace 替換。'
+  },
+  {
+    id: 'L7',
+    module: 'listening',
+    part: '簡短對話',
+    partEn: 'Short Conversations',
+    type: 'conversation',
+    audioScript: [
+      { speaker: 'Girl', text: 'Are you ready for tomorrow’s English speech contest, Leo?' },
+      { speaker: 'Boy', text: 'Honestly, I’m a bit nervous. I’ve memorized the whole script, but I’m worried I might forget my lines on stage.' },
+      { speaker: 'Girl', text: 'Don’t worry! Just take a deep breath and speak clearly. Why don’t you practice in front of me right now?' },
+      { speaker: 'Narrator', text: 'Question: What does the girl suggest Leo do?' }
+    ],
+    options: [
+      { label: 'A', text: 'Write a shorter speech tonight.' },
+      { label: 'B', text: 'Cancel his participation in the contest.' },
+      { label: 'C', text: 'Rehearse his speech in front of her.' },
+      { label: 'D', text: 'Ask the teacher for extra time.' }
+    ],
+    answer: 'C',
+    explanation: '對話最後女孩提議：「Why don’t you practice in front of me right now?（你何不現在就在我面前練習呢？）」，選項 C 中的 rehearse 就是 practice（排練、練習）的中級同義字！',
+    vocabTip: 'memorize (v.) 背誦；script 講稿；rehearse (v.) 排練（= practice），中級閱讀與聽力極愛考同義字替換。'
+  },
+
+  // ================= MODULE 2: READING COMPREHENSION (13 Questions) =================
+  // Part 1: 詞彙與結構 (Vocabulary & Structure - 6 Questions)
+  {
+    id: 'R1',
+    module: 'reading',
+    part: '詞彙與結構',
+    partEn: 'Vocabulary & Structure',
+    questionText: 'To protect the environment, our school encourages students to use _______ water bottles instead of buying plastic ones.',
+    options: [
+      { label: 'A', text: 'reusable' },
+      { label: 'B', text: 'fragile' },
+      { label: 'C', text: 'temporary' },
+      { label: 'D', text: 'artificial' }
+    ],
+    answer: 'A',
+    explanation: '句意為「為了保護環境，我們學校鼓勵學生使用『可重複使用的』水瓶，而不是購買塑膠瓶」。字首 re- 表示「再次」，reusable 意為「可重複使用的」。',
+    vocabTip: 'reusable (adj.) 可重複使用的；fragile 易碎的；temporary 暫時的；artificial 人造的；instead of 而不是。'
+  },
+  {
+    id: 'R2',
+    module: 'reading',
+    part: '詞彙與結構',
+    partEn: 'Vocabulary & Structure',
+    questionText: 'The new community library _______ next month, and it will feature a special reading zone for teenagers.',
+    options: [
+      { label: 'A', text: 'will open' },
+      { label: 'B', text: 'will be opened' },
+      { label: 'C', text: 'has opened' },
+      { label: 'D', text: 'was opening' }
+    ],
+    answer: 'B',
+    explanation: '主詞是「The new community library（新的社區圖書館）」，時間副詞是「next month（下個月）」，圖書館是「被開幕」，因此要用未來被動語態「will be + p.p.（will be opened）」。',
+    vocabTip: '被動語態公式：be + 過去分詞 (p.p.)。feature (v.) 以……為特色；zone 區域。'
+  },
+  {
+    id: 'R3',
+    module: 'reading',
+    part: '詞彙與結構',
+    partEn: 'Vocabulary & Structure',
+    questionText: '_______ heavy rain, the outdoor charity concert was held on schedule and attracted hundreds of people.',
+    options: [
+      { label: 'A', text: 'Although' },
+      { label: 'B', text: 'Despite' },
+      { label: 'C', text: 'Because' },
+      { label: 'D', text: 'Unless' }
+    ],
+    answer: 'B',
+    explanation: '空格後面是名詞片語「heavy rain（大雨）」，而非完整句子，因此必須選介系詞「Despite（儘管）」。Although 雖然語意相同，但它是連接詞，後面必須接「主詞 + 動詞」。',
+    vocabTip: 'Despite + N / V-ing = In spite of + N / V-ing（儘管……）；on schedule 準時、按預定計畫。'
+  },
+  {
+    id: 'R4',
+    module: 'reading',
+    part: '詞彙與結構',
+    partEn: 'Vocabulary & Structure',
+    questionText: 'If Kevin _______ more carefully during the math exam yesterday, he wouldn’t have made such a silly mistake.',
+    options: [
+      { label: 'A', text: 'checks' },
+      { label: 'B', text: 'checked' },
+      { label: 'C', text: 'had checked' },
+      { label: 'D', text: 'would check' }
+    ],
+    answer: 'C',
+    explanation: '這是中級英檢必考的「與過去事實相反的假設語氣」！時間是 yesterday（昨天），主要子句是「wouldn’t have + p.p.」，條件子句（If 子句）必須用過去完成式「had + p.p.（had checked）」。',
+    vocabTip: '與過去事實相反假設：If + S + had + p.p., S + would/could/might + have + p.p.。'
+  },
+  {
+    id: 'R5',
+    module: 'reading',
+    part: '詞彙與結構',
+    partEn: 'Vocabulary & Structure',
+    questionText: 'The scientist _______ discovered this rare species of butterfly won an international award last year.',
+    options: [
+      { label: 'A', text: 'which' },
+      { label: 'B', text: 'whose' },
+      { label: 'C', text: 'whom' },
+      { label: 'D', text: 'who' }
+    ],
+    answer: 'D',
+    explanation: '先行詞是人「The scientist（這位科學家）」，且關係代名詞在形容詞子句中擔任主詞（後面直接接動詞 discovered），所以要用主格關係代名詞「who」。',
+    vocabTip: '關代先行詞為人：主格用 who，受格用 whom，所有格用 whose。rare 稀有的；species 物種（單複數同形）。'
+  },
+  {
+    id: 'R6',
+    module: 'reading',
+    part: '詞彙與結構',
+    partEn: 'Vocabulary & Structure',
+    questionText: 'Regular exercise not only strengthens your muscles but also helps _______ stress after a long day at school.',
+    options: [
+      { label: 'A', text: 'relieve' },
+      { label: 'B', text: 'increase' },
+      { label: 'C', text: 'persuade' },
+      { label: 'D', text: 'complain' }
+    ],
+    answer: 'A',
+    explanation: '句意為「規律運動不僅能增強肌肉，還能幫助『減輕、舒緩』在學校一整天後的壓力」。relieve stress 是中級常見搭配詞（紓解壓力）。',
+    vocabTip: 'relieve (v.) 減輕、緩解；strengthen (v.) 強化；not only A but also B 不僅 A 而且 B。'
+  },
+
+  // Part 2: 段落填空 (Cloze Test - 4 Questions in 1 Passage)
+  {
+    id: 'R7',
+    module: 'reading',
+    part: '段落填空',
+    partEn: 'Cloze Test',
+    passageTitle: 'Urban Rooftop Gardens (都市屋頂花園)',
+    passageText: `In many crowded cities around the world, green spaces are becoming harder to find. To solve this problem, more and more schools and apartment buildings are turning their empty rooftops into gardens. These rooftop gardens do much more than just make cities look prettier. First, plants absorb heat from the sun, __(7)__ helps keep the buildings cooler during hot summers. As a result, residents use less air conditioning and save electricity. __(8)__, rooftop gardens can collect rainwater and reduce the risk of flooding during heavy storms. For students, taking care of a school rooftop garden is also a wonderful way to learn __(9)__ vegetables and fruits grow. Many young people who used to dislike eating greens say they enjoy vegetables much more after __(10)__ them themselves!`,
+    blankNumber: 7,
+    questionText: '請選出第 (7) 格最適合的答案：',
+    options: [
+      { label: 'A', text: 'what' },
+      { label: 'B', text: 'which' },
+      { label: 'C', text: 'where' },
+      { label: 'D', text: 'that' }
+    ],
+    answer: 'B',
+    explanation: '逗點後面要補充說明前面整件事（植物吸收太陽熱能這件事），在非限定用法中，關係代名詞必須用「which」（不可用 that）。',
+    vocabTip: '逗點 + which 可代替前面整個子句的意思；absorb (v.) 吸收。'
+  },
+  {
+    id: 'R8',
+    module: 'reading',
+    part: '段落填空',
+    partEn: 'Cloze Test',
+    passageTitle: 'Urban Rooftop Gardens (都市屋頂花園)',
+    passageText: `In many crowded cities around the world, green spaces are becoming harder to find. To solve this problem, more and more schools and apartment buildings are turning their empty rooftops into gardens. These rooftop gardens do much more than just make cities look prettier. First, plants absorb heat from the sun, __(7)__ helps keep the buildings cooler during hot summers. As a result, residents use less air conditioning and save electricity. __(8)__, rooftop gardens can collect rainwater and reduce the risk of flooding during heavy storms. For students, taking care of a school rooftop garden is also a wonderful way to learn __(9)__ vegetables and fruits grow. Many young people who used to dislike eating greens say they enjoy vegetables much more after __(10)__ them themselves!`,
+    blankNumber: 8,
+    questionText: '請選出第 (8) 格最適合的答案：',
+    options: [
+      { label: 'A', text: 'However' },
+      { label: 'B', text: 'Otherwise' },
+      { label: 'C', text: 'In addition' },
+      { label: 'D', text: 'For instance' }
+    ],
+    answer: 'C',
+    explanation: '前一句講了第一個好處（First, 降低建築物溫度、省電），這一句要繼續列舉第二個好處（收集雨水、減少淹水風險），因此連接詞要用「In addition（此外、而且）」。',
+    vocabTip: 'In addition = Furthermore = Besides（此外）；However 然而；Otherwise 否則；For instance 例如。'
+  },
+  {
+    id: 'R9',
+    module: 'reading',
+    part: '段落填空',
+    partEn: 'Cloze Test',
+    passageTitle: 'Urban Rooftop Gardens (都市屋頂花園)',
+    passageText: `In many crowded cities around the world, green spaces are becoming harder to find. To solve this problem, more and more schools and apartment buildings are turning their empty rooftops into gardens. These rooftop gardens do much more than just make cities look prettier. First, plants absorb heat from the sun, __(7)__ helps keep the buildings cooler during hot summers. As a result, residents use less air conditioning and save electricity. __(8)__, rooftop gardens can collect rainwater and reduce the risk of flooding during heavy storms. For students, taking care of a school rooftop garden is also a wonderful way to learn __(9)__ vegetables and fruits grow. Many young people who used to dislike eating greens say they enjoy vegetables much more after __(10)__ them themselves!`,
+    blankNumber: 9,
+    questionText: '請選出第 (9) 格最適合的答案：',
+    options: [
+      { label: 'A', text: 'how' },
+      { label: 'B', text: 'who' },
+      { label: 'C', text: 'which' },
+      { label: 'D', text: 'whose' }
+    ],
+    answer: 'A',
+    explanation: '句意為「照顧學校屋頂花園也是學習蔬菜和水果是『如何』生長的好方法」，表示方式或過程，疑問詞應選「how」。',
+    vocabTip: '名詞子句：learn + how + S + V（學習……是如何……的）。'
+  },
+  {
+    id: 'R10',
+    module: 'reading',
+    part: '段落填空',
+    partEn: 'Cloze Test',
+    passageTitle: 'Urban Rooftop Gardens (都市屋頂花園)',
+    passageText: `In many crowded cities around the world, green spaces are becoming harder to find. To solve this problem, more and more schools and apartment buildings are turning their empty rooftops into gardens. These rooftop gardens do much more than just make cities look prettier. First, plants absorb heat from the sun, __(7)__ helps keep the buildings cooler during hot summers. As a result, residents use less air conditioning and save electricity. __(8)__, rooftop gardens can collect rainwater and reduce the risk of flooding during heavy storms. For students, taking care of a school rooftop garden is also a wonderful way to learn __(9)__ vegetables and fruits grow. Many young people who used to dislike eating greens say they enjoy vegetables much more after __(10)__ them themselves!`,
+    blankNumber: 10,
+    questionText: '請選出第 (10) 格最適合的答案：',
+    options: [
+      { label: 'A', text: 'grow' },
+      { label: 'B', text: 'grew' },
+      { label: 'C', text: 'growing' },
+      { label: 'D', text: 'grown' }
+    ],
+    answer: 'C',
+    explanation: '「after」在這裡當作介系詞（或分詞構句省略主詞 they），後面必須接動名詞「V-ing（growing）」。',
+    vocabTip: 'after / before + V-ing；used to + VR 過去習慣（但現在不這樣了）。'
+  },
+
+  // Part 3: 閱讀理解 (Reading Comprehension - 3 Questions in 1 Article)
+  {
+    id: 'R11',
+    module: 'reading',
+    part: '閱讀理解',
+    partEn: 'Reading Comprehension',
+    passageTitle: 'The Rise of "Silent Reading Parties"',
+    passageText: `In an age where smartphones and social media constantly compete for our attention, a surprising new trend is gaining popularity among both teenagers and adults: Silent Reading Parties. Unlike traditional book clubs, where members read a specific book beforehand and discuss it together, silent reading parties have no assigned reading and no pressure to talk.
+
+Here is how it works. Participants gather at a cozy café, a public park, or a community library, order a drink, and turn off their phone notifications. For the next hour or two, everyone simply sits quietly and reads whatever book they brought along—whether it is a science fiction novel, a graphic comic, or a history magazine. Soft instrumental music often plays in the background to create a relaxing atmosphere.
+
+Why do people enjoy reading in silence with strangers? Organizers explain that being surrounded by other focused readers creates "positive peer pressure," making it much easier to put down one's phone and dive into a book. After the quiet reading session ends, attendees are free to either head home immediately or stay for fifteen minutes to chat about what they just read. For many busy students, it has become the favorite screen-free hour of their week.`,
+    questionText: '11. What is the main purpose of this article?',
+    options: [
+      { label: 'A', text: 'To advertise a new bookstore opening in the city.' },
+      { label: 'B', text: 'To introduce a popular new way of reading together quietly.' },
+      { label: 'C', text: 'To explain why traditional book clubs are closing down.' },
+      { label: 'D', text: 'To warn students about the dangers of social media.' }
+    ],
+    answer: 'B',
+    explanation: '這是一題典型的「主旨題（Main Purpose）」。全文介紹了新興的「無聲閱讀派對（Silent Reading Parties）」如何運作以及為何受歡迎，因此 B 選項最能涵蓋全文大意。',
+    vocabTip: 'gain popularity 受到歡迎；participant 參與者；atmosphere 氣氛；session 一段時間、場次。'
+  },
+  {
+    id: 'R12',
+    module: 'reading',
+    part: '閱讀理解',
+    partEn: 'Reading Comprehension',
+    passageTitle: 'The Rise of "Silent Reading Parties"',
+    passageText: `In an age where smartphones and social media constantly compete for our attention, a surprising new trend is gaining popularity among both teenagers and adults: Silent Reading Parties. Unlike traditional book clubs, where members read a specific book beforehand and discuss it together, silent reading parties have no assigned reading and no pressure to talk.
+
+Here is how it works. Participants gather at a cozy café, a public park, or a community library, order a drink, and turn off their phone notifications. For the next hour or two, everyone simply sits quietly and reads whatever book they brought along—whether it is a science fiction novel, a graphic comic, or a history magazine. Soft instrumental music often plays in the background to create a relaxing atmosphere.
+
+Why do people enjoy reading in silence with strangers? Organizers explain that being surrounded by other focused readers creates "positive peer pressure," making it much easier to put down one's phone and dive into a book. After the quiet reading session ends, attendees are free to either head home immediately or stay for fifteen minutes to chat about what they just read. For many busy students, it has become the favorite screen-free hour of their week.`,
+    questionText: '12. How is a Silent Reading Party different from a traditional book club?',
+    options: [
+      { label: 'A', text: 'Members must finish reading the same novel before arriving.' },
+      { label: 'B', text: 'Participants are not required to read a specific book or discuss it.' },
+      { label: 'C', text: 'It is only open to elementary and junior high school students.' },
+      { label: 'D', text: 'People are asked to read aloud to strangers in a café.' }
+    ],
+    answer: 'B',
+    explanation: '第一段最後一句明確指出：「Unlike traditional book clubs... silent reading parties have no assigned reading and no pressure to talk.（沒有指定讀物，也沒有必須交談的壓力）」，與選項 B 完全相符。',
+    vocabTip: 'assigned (adj.) 指定的；specific 特定的；beforehand 事先；attendee 出席者。'
+  },
+  {
+    id: 'R13',
+    module: 'reading',
+    part: '閱讀理解',
+    partEn: 'Reading Comprehension',
+    passageTitle: 'The Rise of "Silent Reading Parties"',
+    passageText: `In an age where smartphones and social media constantly compete for our attention, a surprising new trend is gaining popularity among both teenagers and adults: Silent Reading Parties. Unlike traditional book clubs, where members read a specific book beforehand and discuss it together, silent reading parties have no assigned reading and no pressure to talk.
+
+Here is how it works. Participants gather at a cozy café, a public park, or a community library, order a drink, and turn off their phone notifications. For the next hour or two, everyone simply sits quietly and reads whatever book they brought along—whether it is a science fiction novel, a graphic comic, or a history magazine. Soft instrumental music often plays in the background to create a relaxing atmosphere.
+
+Why do people enjoy reading in silence with strangers? Organizers explain that being surrounded by other focused readers creates "positive peer pressure," making it much easier to put down one's phone and dive into a book. After the quiet reading session ends, attendees are free to either head home immediately or stay for fifteen minutes to chat about what they just read. For many busy students, it has become the favorite screen-free hour of their week.`,
+    questionText: '13. According to the passage, what helps participants focus on their books?',
+    options: [
+      { label: 'A', text: 'Winning prizes for finishing the most pages.' },
+      { label: 'B', text: 'Being around other people who are also reading quietly.' },
+      { label: 'C', text: 'Having a teacher check their reading progress.' },
+      { label: 'D', text: 'Listening to loud pop music with headphones.' }
+    ],
+    answer: 'B',
+    explanation: '第三段提到：「being surrounded by other focused readers creates "positive peer pressure," making it much easier to put down one\'s phone and dive into a book.（被其他專注的讀者包圍會產生『正向同儕壓力』，讓人更容易放下手機投入書本）」。',
+    vocabTip: 'be surrounded by 被……包圍；peer pressure 同儕壓力；dive into 投入、全神貫注於。'
+  }
+];
+
+/**
+ * ============================================================================
+ * APPLICATION STATE & CONTROLLER
+ * ============================================================================
+ */
+const app = {
+  state: {
+    view: 'home', // 'home' | 'quiz' | 'result'
+    mode: 'full', // 'full' | 'listening' | 'reading' | 'vocab'
+    questions: [],
+    currentIndex: 0,
+    answers: {}, // { questionId: 'A' }
+    flagged: {}, // { questionId: true }
+    playCounts: {}, // { questionId: 0..2 }
+    speechRate: 0.95,
+    isSpeaking: false,
+    timerEnabled: true,
+    secondsRemaining: 1200, // 20 mins for full test
+    timerInterval: null,
+    xp: parseInt(localStorage.getItem('gept_inter_xp') || '120', 10),
+    reviewFilter: 'all' // 'all' | 'wrong'
+  },
+
+  init() {
+    this.updateXPDisplay();
+    this.render();
+    // Stop speech when leaving or reloading
+    window.addEventListener('beforeunload', () => {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    });
+  },
+
+  updateXPDisplay() {
+    const el = document.getElementById('xp-display');
+    if (el) el.textContent = this.state.xp;
+  },
+
+  addXP(points) {
+    this.state.xp += points;
+    localStorage.setItem('gept_inter_xp', this.state.xp.toString());
+    this.updateXPDisplay();
+  },
+
+  showToast(msg, icon = '💡') {
+    const box = document.getElementById('toast-box');
+    document.getElementById('toast-message').textContent = msg;
+    document.getElementById('toast-icon').textContent = icon;
+    box.classList.remove('translate-y-20', 'opacity-0');
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => {
+      box.classList.add('translate-y-20', 'opacity-0');
+    }, 3000);
+  },
+
+  stopAudio() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    this.state.isSpeaking = false;
+    const wave = document.getElementById('audio-wave');
+    if (wave) wave.classList.add('hidden');
+  },
+
+  playQuestionAudio(qId) {
+    if (!('speechSynthesis' in window)) {
+      this.showToast('你的瀏覽器不支援語音朗讀功能，建議使用 Chrome 或 Edge 瀏覽器。', '⚠️');
+      return;
+    }
+
+    const q = this.state.questions.find(item => item.id === qId);
+    if (!q || !q.audioScript) return;
+
+    const currentPlays = this.state.playCounts[qId] || 0;
+    if (currentPlays >= 2) {
+      this.showToast('擬真測驗每題最多播放 2 次喔！（已達上限）', '🎧');
+      return;
+    }
+
+    this.stopAudio();
+    this.state.playCounts[qId] = currentPlays + 1;
+    this.state.isSpeaking = true;
+
+    // Update UI counter immediately
+    const countBadge = document.getElementById('play-count-text');
+    if (countBadge) {
+      const left = 2 - this.state.playCounts[qId];
+      countBadge.textContent = left > 0 ? `剩餘播放次數：${left} 次` : '已無剩餘播放次數';
+    }
+    const wave = document.getElementById('audio-wave');
+    if (wave) wave.classList.remove('hidden');
+
+    const voices = window.speechSynthesis.getVoices();
+    const enVoices = voices.filter(v => v.lang.startsWith('en'));
+    const femaleVoice = enVoices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('Google US English')) || enVoices[0];
+    const maleVoice = enVoices.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Daniel') || v.name.includes('Google UK English Male')) || enVoices[1] || enVoices[0];
+
+    let idx = 0;
+    const speakNext = () => {
+      if (idx >= q.audioScript.length || !this.state.isSpeaking) {
+        this.state.isSpeaking = false;
+        const w = document.getElementById('audio-wave');
+        if (w) w.classList.add('hidden');
+        return;
+      }
+
+      const line = q.audioScript[idx];
+      const utter = new SpeechSynthesisUtterance(line.text);
+      utter.lang = 'en-US';
+      utter.rate = this.state.speechRate;
+
+      // Differentiate speakers by voice & pitch
+      if (line.speaker === 'Man' || line.speaker === 'Boy') {
+        if (maleVoice) utter.voice = maleVoice;
+        utter.pitch = 0.92;
+      } else if (line.speaker === 'Woman' || line.speaker === 'Girl') {
+        if (femaleVoice) utter.voice = femaleVoice;
+        utter.pitch = 1.12;
+      } else {
+        if (femaleVoice) utter.voice = femaleVoice;
+        utter.pitch = 1.0;
+      }
+
+      utter.onend = () => {
+        idx++;
+        setTimeout(speakNext, 350);
+      };
+      utter.onerror = () => {
+        this.state.isSpeaking = false;
+      };
+
+      window.speechSynthesis.speak(utter);
+    };
+
+    speakNext();
+  },
+
+  toggleSpeechRate() {
+    this.state.speechRate = this.state.speechRate === 0.95 ? 0.8 : 0.95;
+    const label = this.state.speechRate === 0.95 ? '標準語速 (1.0x)' : '練習慢速 (0.8x)';
+    this.showToast(`已切換為：${label}`, '🐢');
+    this.render();
+  },
+
+  toggleTimerSetting() {
+    this.state.timerEnabled = !this.state.timerEnabled;
+    this.render();
+  },
+
+  startTimer(seconds) {
+    clearInterval(this.state.timerInterval);
+    const timerBox = document.getElementById('header-timer-box');
+    if (!this.state.timerEnabled) {
+      timerBox.classList.add('hidden');
+      timerBox.classList.remove('flex');
+      return;
+    }
+
+    this.state.secondsRemaining = seconds;
+    timerBox.classList.remove('hidden');
+    timerBox.classList.add('flex');
+    this.updateTimerText();
+
+    this.state.timerInterval = setInterval(() => {
+      this.state.secondsRemaining--;
+      this.updateTimerText();
+      if (this.state.secondsRemaining <= 0) {
+        clearInterval(this.state.timerInterval);
+        this.showToast('時間到！系統已自動為你交卷。', '⏰');
+        this.submitQuiz();
+      }
+    }, 1000);
+  },
+
+  updateTimerText() {
+    const m = Math.floor(this.state.secondsRemaining / 60);
+    const s = this.state.secondsRemaining % 60;
+    const el = document.getElementById('timer-display');
+    if (el) {
+      el.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+  },
+
+  startQuiz(mode) {
+    this.stopAudio();
+    this.state.mode = mode;
+    this.state.answers = {};
+    this.state.flagged = {};
+    this.state.playCounts = {};
+    this.state.currentIndex = 0;
+
+    let selected = [];
+    let duration = 1200; // 20 mins
+
+    if (mode === 'full') {
+      selected = [...QUESTION_BANK];
+      duration = 1200;
+    } else if (mode === 'listening') {
+      selected = QUESTION_BANK.filter(q => q.module === 'listening');
+      duration = 480; // 8 mins
+    } else if (mode === 'reading') {
+      selected = QUESTION_BANK.filter(q => q.module === 'reading');
+      duration = 720; // 12 mins
+    } else if (mode === 'vocab') {
+      selected = QUESTION_BANK.filter(q => q.part === '詞彙與結構');
+      duration = 360; // 6 mins
+    }
+
+    this.state.questions = selected;
+    this.state.view = 'quiz';
+    this.startTimer(duration);
+    this.render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  selectOption(qId, optLabel) {
+    this.state.answers[qId] = optLabel;
+    this.render();
+  },
+
+  toggleFlag(qId) {
+    if (this.state.flagged[qId]) {
+      delete this.state.flagged[qId];
+    } else {
+      this.state.flagged[qId] = true;
+    }
+    this.render();
+  },
+
+  goToQuestion(index) {
+    if (index >= 0 && index < this.state.questions.length) {
+      this.stopAudio();
+      this.state.currentIndex = index;
+      this.render();
+    }
+  },
+
+  confirmSubmit() {
+    const total = this.state.questions.length;
+    const answered = Object.keys(this.state.answers).length;
+    const modal = document.getElementById('confirm-modal');
+    const title = document.getElementById('modal-title');
+    const desc = document.getElementById('modal-desc');
+    const btn = document.getElementById('modal-confirm-btn');
+
+    if (answered < total) {
+      title.textContent = '還有題目未完成喔！';
+      desc.textContent = `你已完成 ${answered} / ${total} 題，確定要現在交卷並查看成績與詳解嗎？`;
+    } else {
+      title.textContent = '太棒了！全部作答完畢';
+      desc.textContent = `你已完成全部 ${total} 題，準備好看看你的中級英檢戰力分析與詳解了嗎？`;
+    }
+
+    btn.onclick = () => {
+      this.closeModal();
+      this.submitQuiz();
+    };
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  },
+
+  closeModal() {
+    const modal = document.getElementById('confirm-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  },
+
+  submitQuiz() {
+    this.stopAudio();
+    clearInterval(this.state.timerInterval);
+    const timerBox = document.getElementById('header-timer-box');
+    timerBox.classList.add('hidden');
+    timerBox.classList.remove('flex');
+
+    // Calculate XP earned
+    let correctCount = 0;
+    this.state.questions.forEach(q => {
+      if (this.state.answers[q.id] === q.answer) correctCount++;
+    });
+    const earnedXP = correctCount * 15 + 20;
+    this.addXP(earnedXP);
+
+    this.state.reviewFilter = 'all';
+    this.state.view = 'result';
+    this.render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  goHome() {
+    this.stopAudio();
+    clearInterval(this.state.timerInterval);
+    const timerBox = document.getElementById('header-timer-box');
+    timerBox.classList.add('hidden');
+    timerBox.classList.remove('flex');
+    this.state.view = 'home';
+    this.render();
+  },
+
+  copyStudyNotes() {
+    const notes = this.state.questions.map((q, idx) => {
+      const userAns = this.state.answers[q.id] || '未作答';
+      const isCorrect = userAns === q.answer;
+      return `【第 ${idx + 1} 題 - ${q.part}】(${isCorrect ? '答對' : '需複習'})\n重點提示：${q.vocabTip}\n解析：${q.explanation}\n`;
+    }).join('\n');
+
+    const fullText = `=== GEPT 中級英檢挑戰賽・專屬複習筆記 ===\n\n${notes}`;
+    const textarea = document.createElement('textarea');
+    textarea.value = fullText;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      this.showToast('已複製全部重點單字與詳解筆記到剪貼簿！', '📋');
+    } catch (e) {
+      this.showToast('複製失敗，請手動選取文字複製。', '⚠️');
+    }
+    document.body.removeChild(textarea);
+  },
+
+  /**
+   * ==========================================================================
+   * VIEW RENDERERS
+   * ==========================================================================
+   */
+  render() {
+    const container = document.getElementById('app-container');
+    if (this.state.view === 'home') {
+      container.innerHTML = this.renderHome();
+    } else if (this.state.view === 'quiz') {
+      container.innerHTML = this.renderQuiz();
+    } else if (this.state.view === 'result') {
+      container.innerHTML = this.renderResult();
+    }
+  },
+
+  renderHome() {
+    return `
+      <!-- Hero Banner -->
+      <div class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 rounded-3xl p-6 sm:p-10 text-white shadow-xl mb-8 relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl">
+          <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold mb-4 border border-white/20">
+            <span>🎓 恭喜通過初級英檢！下一站：中級殿堂</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3 leading-tight">
+            準備好解鎖你的<br class="sm:hidden" />「中級英檢」超能力了嗎？
+          </h2>
+          <p class="text-indigo-100 text-sm sm:text-base leading-relaxed mb-6">
+            從初級（國中畢業程度）邁向中級（高中畢業程度），需要掌握更長篇的聽力對話、完成式與假設語氣，以及生活科技文章閱讀。透過擬真互動模擬考，一步步升級你的英文實力！
+          </p>
+
+          <!-- Timer Toggle Pill -->
+          <div class="flex flex-wrap items-center gap-3">
+            <button onclick="app.startQuiz('full')" class="bg-white text-indigo-700 hover:bg-indigo-50 font-extrabold px-6 py-3.5 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 text-sm sm:text-base">
+              <span>🚀 開始完整模擬測驗 (20題)</span>
+            </button>
+
+            <button onclick="app.toggleTimerSetting()" class="bg-indigo-800/70 hover:bg-indigo-800 text-white border border-indigo-400/40 px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition">
+              <span>⏱️ 考試倒數計時：</span>
+              <span class="${this.state.timerEnabled ? 'text-emerald-300' : 'text-slate-300'} font-bold">
+                ${this.state.timerEnabled ? '開啟 (擬真模式)' : '關閉 (輕鬆練習)'}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Decorative shapes -->
+        <div class="hidden md:flex absolute right-8 bottom-6 w-44 h-44 bg-white/10 rounded-full items-center justify-center backdrop-blur-md border border-white/20 text-7xl shadow-inner">
+          🏆
+        </div>
+      </div>
+
+      <!-- Practice Modes Grid -->
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+          <span>🎯 分項特訓模式</span>
+          <span class="text-xs font-medium text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full">針對弱點加強</span>
+        </h3>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-10">
+        <!-- Card 1: Listening -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-2xl mb-4">
+              🎧
+            </div>
+            <div class="flex items-center justify-between mb-1">
+              <h4 class="font-bold text-lg text-slate-900">聽力能力測驗</h4>
+              <span class="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full">7 題</span>
+            </div>
+            <p class="text-slate-500 text-sm leading-relaxed mb-5">
+              包含「看圖辨義」、「問答」與「簡短對話」。內建真人發音語音引擎，模擬真實限播 2 次規則。
+            </p>
+          </div>
+          <button onclick="app.startQuiz('listening')" class="w-full py-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-sm transition">
+            練習聽力測驗 →
+          </button>
+        </div>
+
+        <!-- Card 2: Reading Full -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mb-4">
+              📖
+            </div>
+            <div class="flex items-center justify-between mb-1">
+              <h4 class="font-bold text-lg text-slate-900">閱讀能力測驗</h4>
+              <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">13 題</span>
+            </div>
+            <p class="text-slate-500 text-sm leading-relaxed mb-5">
+              涵蓋「詞彙與結構」、「段落填空（克漏字）」與「長篇閱讀理解」，訓練推論與文意連貫能力。
+            </p>
+          </div>
+          <button onclick="app.startQuiz('reading')" class="w-full py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-sm transition">
+            練習閱讀測驗 →
+          </button>
+        </div>
+
+        <!-- Card 3: Grammar & Vocab Sprint -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mb-4">
+              ⚡
+            </div>
+            <div class="flex items-center justify-between mb-1">
+              <h4 class="font-bold text-lg text-slate-900">中級核心文法快篩</h4>
+              <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">6 題</span>
+            </div>
+            <p class="text-slate-500 text-sm leading-relaxed mb-5">
+              專攻小六升中級最關鍵的「假設語氣、被動語態、關係代名詞與轉折詞」，快速建立高分直覺！
+            </p>
+          </div>
+          <button onclick="app.startQuiz('vocab')" class="w-full py-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-sm transition">
+            挑戰文法快篩 →
+          </button>
+        </div>
+      </div>
+
+      <!-- Bridge Guide for 6th Graders -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+          <span>💡 給小六挑戰者的「初級 → 中級」破關秘笈</span>
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div class="font-bold text-indigo-700 mb-1">1. 聽力選項不會印在紙上</div>
+            <p class="text-slate-600 leading-relaxed">中級聽力的「問答」與「簡短對話」在真實考試時只有題目本空白處，需靠耳朵聽出關鍵字與同義字替換（如 practice → rehearse）。</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div class="font-bold text-indigo-700 mb-1">2. 單字量從 2,000 升級到 4,500</div>
+            <p class="text-slate-600 leading-relaxed">多認識字首與字尾（如 <code class="bg-white px-1 rounded text-indigo-600">re-</code> 再一次、<code class="bg-white px-1 rounded text-indigo-600">-able</code> 可……的），遇到沒背過的長單字也能輕鬆猜出意思！</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div class="font-bold text-indigo-700 mb-1">3. 段落填空看「前後轉折」</div>
+            <p class="text-slate-600 leading-relaxed">克漏字不只要看單一空格，更要注意 <code class="bg-white px-1 rounded text-indigo-600">However</code>（然而）、<code class="bg-white px-1 rounded text-indigo-600">In addition</code>（此外）等連接詞帶來的語氣變化。</p>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderQuiz() {
+    const q = this.state.questions[this.state.currentIndex];
+    const total = this.state.questions.length;
+    const answeredCount = Object.keys(this.state.answers).length;
+    const progressPct = Math.round(((this.state.currentIndex + 1) / total) * 100);
+    const playsUsed = this.state.playCounts[q.id] || 0;
+    const playsLeft = Math.max(0, 2 - playsUsed);
+
+    return `
+      <!-- Top Progress & Navigation Bar -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold ${q.module === 'listening' ? 'bg-sky-100 text-sky-700' : 'bg-emerald-100 text-emerald-700'}">
+              ${q.module === 'listening' ? '🎧 聽力測驗' : '📖 閱讀測驗'} • ${q.part}
+            </span>
+            <span class="text-sm font-bold text-slate-700">
+              第 ${this.state.currentIndex + 1} / ${total} 題
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="app.toggleFlag('${q.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1 ${this.state.flagged[q.id] ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+              <span>${this.state.flagged[q.id] ? '🚩 已標記待檢查' : '🏳️ 標記此題'}</span>
+            </button>
+            <button onclick="app.confirmSubmit()" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition">
+              交卷看成績 (${answeredCount}/${total})
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+          <div class="bg-indigo-600 h-full transition-all duration-300" style="width: ${progressPct}%"></div>
+        </div>
+      </div>
+
+      <!-- Main Question Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left / Main Question Card -->
+        <div class="lg:col-span-8 space-y-6">
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+            
+            <!-- LISTENING MODULE UI -->
+            ${q.module === 'listening' ? `
+              <div class="mb-6">
+                ${q.svgScene ? `<div class="mb-5">${q.svgScene}</div>` : ''}
+
+                <!-- Audio Player Box -->
+                <div class="bg-gradient-to-r from-sky-50 to-indigo-50 border border-sky-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div class="flex items-center gap-3.5">
+                    <button onclick="app.playQuestionAudio('${q.id}')" ${playsLeft === 0 ? 'disabled' : ''} class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md transition transform active:scale-95 ${playsLeft > 0 ? 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer' : 'bg-slate-400 cursor-not-allowed'}">
+                      <svg class="w-6 h-6 ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg>
+                    </button>
+                    <div>
+                      <div class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                        <span>點擊播放聽力題目</span>
+                        <span id="audio-wave" class="hidden text-xs bg-indigo-600 text-white px-2 py-0.5 rounded-full animate-pulse">🔊 朗讀中...</span>
+                      </div>
+                      <p id="play-count-text" class="text-xs text-slate-600 mt-0.5 font-medium">
+                        ${playsLeft > 0 ? `剩餘播放次數：${playsLeft} 次（擬真測驗限制）` : '已無剩餘播放次數'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button onclick="app.toggleSpeechRate()" class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs">
+                    語速：${this.state.speechRate === 0.95 ? '1.0x 標準' : '0.8x 慢速'}
+                  </button>
+                </div>
+
+                <p class="text-sm text-slate-500 mt-4 font-medium">
+                  請仔細聆聽語音內容，並選出最適合的答案：
+                </p>
+              </div>
+            ` : ''}
+
+            <!-- READING MODULE UI -->
+            ${q.module === 'reading' ? `
+              ${q.passageText ? `
+                <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 mb-6 max-h-80 overflow-y-auto">
+                  <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1">${q.partEn}</div>
+                  <h4 class="font-bold text-slate-900 text-base sm:text-lg mb-3">${q.passageTitle}</h4>
+                  <div class="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-line font-normal">
+                    ${q.passageText.replace(`__(${q.blankNumber})__`, `<span class="inline-block bg-indigo-100 text-indigo-800 font-extrabold px-2.5 py-0.5 rounded-md border border-indigo-300 mx-1">(${q.blankNumber}) ______</span>`)}
+                  </div>
+                </div>
+              ` : ''}
+
+              <div class="mb-6">
+                <p class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+                  ${q.questionText}
+                </p>
+              </div>
+            ` : ''}
+
+            <!-- OPTIONS LIST -->
+            <div class="space-y-3">
+              ${q.options.map(opt => {
+                const isSelected = this.state.answers[q.id] === opt.label;
+                return `
+                  <button onclick="app.selectOption('${q.id}', '${opt.label}')" class="w-full text-left p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 ${isSelected ? 'border-indigo-600 bg-indigo-50/70 shadow-xs' : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'}">
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-extrabold shrink-0 mt-0.5 ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}">
+                      ${opt.label}
+                    </span>
+                    <span class="text-sm sm:text-base font-medium ${isSelected ? 'text-indigo-950 font-semibold' : 'text-slate-700'}">
+                      ${opt.text}
+                    </span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Prev / Next Buttons -->
+            <div class="flex items-center justify-between mt-8 pt-5 border-t border-slate-100">
+              <button onclick="app.goToQuestion(${this.state.currentIndex - 1})" ${this.state.currentIndex === 0 ? 'disabled' : ''} class="px-4 py-2.5 rounded-xl font-semibold text-sm border border-slate-200 transition ${this.state.currentIndex === 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-700 hover:bg-slate-50'}">
+                ← 上一題
+              </button>
+
+              ${this.state.currentIndex < total - 1 ? `
+                <button onclick="app.goToQuestion(${this.state.currentIndex + 1})" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-slate-900 hover:bg-slate-800 text-white shadow-sm transition">
+                  下一題 →
+                </button>
+              ` : `
+                <button onclick="app.confirmSubmit()" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition">
+                  完成作答・立即交卷 ✓
+                </button>
+              `}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Sidebar: Question Navigator Palette -->
+        <div class="lg:col-span-4">
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm sticky top-24">
+            <h4 class="font-bold text-slate-800 text-sm mb-3 flex items-center justify-between">
+              <span>🧭 題號快速導覽</span>
+              <span class="text-xs text-slate-500 font-normal">已答 ${answeredCount}/${total}</span>
+            </h4>
+
+            <div class="grid grid-cols-5 gap-2 mb-4">
+              ${this.state.questions.map((item, idx) => {
+                const isCurrent = idx === this.state.currentIndex;
+                const isAnswered = !!this.state.answers[item.id];
+                const isFlagged = !!this.state.flagged[item.id];
+
+                let btnStyle = 'bg-slate-100 text-slate-600 border-transparent';
+                if (isCurrent) {
+                  btnStyle = 'bg-indigo-600 text-white border-indigo-600 ring-2 ring-indigo-200';
+                } else if (isAnswered) {
+                  btnStyle = 'bg-emerald-100 text-emerald-800 border-emerald-200 font-bold';
+                }
+
+                return `
+                  <button onclick="app.goToQuestion(${idx})" class="relative h-10 rounded-xl text-xs font-semibold border transition flex items-center justify-center ${btnStyle}">
+                    ${idx + 1}
+                    ${isFlagged ? '<span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border border-white"></span>' : ''}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex flex-wrap gap-3 text-xs text-slate-500 pt-3 border-t border-slate-100">
+              <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-indigo-600 inline-block"></span>目前題目</div>
+              <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-300 inline-block"></span>已作答</div>
+              <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>已標記</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderResult() {
+    const total = this.state.questions.length;
+    let correctCount = 0;
+    const stats = {
+      '看圖辨義': { correct: 0, total: 0 },
+      '問答': { correct: 0, total: 0 },
+      '簡短對話': { correct: 0, total: 0 },
+      '詞彙與結構': { correct: 0, total: 0 },
+      '段落填空': { correct: 0, total: 0 },
+      '閱讀理解': { correct: 0, total: 0 }
+    };
+
+    this.state.questions.forEach(q => {
+      if (stats[q.part]) stats[q.part].total++;
+      if (this.state.answers[q.id] === q.answer) {
+        correctCount++;
+        if (stats[q.part]) stats[q.part].correct++;
+      }
+    });
+
+    const percentage = Math.round((correctCount / total) * 100);
+    // GEPT Intermediate passing score is roughly 67% (80/120 per section)
+    let badgeTitle = '中級潛力新星 🌟';
+    let badgeDesc = '你已經具備很好的初級底子！把這次錯題的單字與文法弄懂，離中級通過就更近一步囉！';
+    let badgeColor = 'from-amber-500 to-orange-600';
+
+    if (percentage >= 80) {
+      badgeTitle = '中級英檢神童級表現 🏆';
+      badgeDesc = '太強了！以小六生的年紀達到超過 80% 的正確率，你已經完全具備報考全民英檢中級初試的實力！';
+      badgeColor = 'from-emerald-500 to-teal-600';
+    } else if (percentage >= 65) {
+      badgeTitle = '穩健達標・準中級實力 🎯';
+      badgeDesc = '恭喜達到中級及格門檻標準！持續累積閱讀量並熟悉聽力語速，正式考試一定能順利過關！';
+      badgeColor = 'from-indigo-600 to-purple-700';
+    }
+
+    const filteredQuestions = this.state.questions
+      .map((q, idx) => ({ ...q, originalIndex: idx + 1 }))
+      .filter(q => {
+        if (this.state.reviewFilter === 'wrong') {
+          return this.state.answers[q.id] !== q.answer;
+        }
+        return true;
+      });
+
+    return `
+      <!-- Score Hero Card -->
+      <div class="bg-gradient-to-br ${badgeColor} rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <span class="inline-block bg-white/20 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-bold mb-3">
+              測驗成績單 & 戰力分析
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold mb-2">${badgeTitle}</h2>
+            <p class="text-white/90 text-sm sm:text-base max-w-xl leading-relaxed">
+              ${badgeDesc}
+            </p>
+          </div>
+
+          <div class="bg-white/15 backdrop-blur-md border border-white/25 rounded-3xl p-5 text-center min-w-[170px] shrink-0">
+            <div class="text-xs font-bold uppercase tracking-wider text-white/80">總正確率</div>
+            <div class="text-4xl sm:text-5xl font-black my-1">${percentage}%</div>
+            <div class="text-xs font-semibold text-white/90">答對 ${correctCount} / ${total} 題</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skill Breakdown Grid -->
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <h3 class="font-bold text-slate-900 text-lg">📊 各大題型得分分析</h3>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="app.copyStudyNotes()" class="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition flex items-center gap-1.5">
+              <span>📋 複製全部單字文法筆記</span>
+            </button>
+            <button onclick="app.goHome()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition">
+              返回首頁 / 再測一次
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          ${Object.entries(stats).filter(([_, val]) => val.total > 0).map(([partName, val]) => {
+            const pct = Math.round((val.correct / val.total) * 100);
+            return `
+              <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-100 text-center">
+                <div class="text-xs font-bold text-slate-500 mb-1">${partName}</div>
+                <div class="text-xl font-extrabold ${pct >= 70 ? 'text-emerald-600' : 'text-amber-600'}">
+                  ${val.correct}/${val.total}
+                </div>
+                <div class="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                  <div class="h-full ${pct >= 70 ? 'bg-emerald-500' : 'bg-amber-500'}" style="width: ${pct}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Detailed Explanations Section -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h3 class="font-bold text-slate-900 text-lg">🧐 逐題詳解與中級單字文法攻略</h3>
+        <div class="flex bg-slate-200/80 p-1 rounded-xl text-xs font-bold">
+          <button onclick="app.state.reviewFilter='all'; app.render()" class="px-3.5 py-1.5 rounded-lg transition ${this.state.reviewFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'}">
+            顯示全部 (${total})
+          </button>
+          <button onclick="app.state.reviewFilter='wrong'; app.render()" class="px-3.5 py-1.5 rounded-lg transition ${this.state.reviewFilter === 'wrong' ? 'bg-white text-rose-600 shadow-xs' : 'text-slate-600'}">
+            只看錯題 (${total - correctCount})
+          </button>
+        </div>
+      </div>
+
+      ${filteredQuestions.length === 0 ? `
+        <div class="bg-white rounded-3xl p-10 text-center border border-slate-200">
+          <div class="text-5xl mb-3">🎉</div>
+          <h4 class="font-bold text-lg text-slate-900">太厲害了！沒有任何錯題！</h4>
+          <p class="text-slate-500 text-sm mt-1">你可以切換回「顯示全部」複習每一題的重點單字喔。</p>
+        </div>
+      ` : `
+        <div class="space-y-5">
+          ${filteredQuestions.map(q => {
+            const userAns = this.state.answers[q.id];
+            const isCorrect = userAns === q.answer;
+            return `
+              <div class="bg-white rounded-3xl p-6 border-2 ${isCorrect ? 'border-emerald-200' : 'border-rose-200'} shadow-xs">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                      ${isCorrect ? '✓ 答對' : '✕ 需加強'}
+                    </span>
+                    <span class="font-bold text-slate-800 text-sm">第 ${q.originalIndex} 題 • ${q.part}</span>
+                  </div>
+                  <div class="text-xs font-bold">
+                    你的答案：<span class="${isCorrect ? 'text-emerald-600' : 'text-rose-600'}">${userAns || '未作答'}</span>
+                    <span class="mx-1.5 text-slate-300">|</span>
+                    正確答案：<span class="text-emerald-600">${q.answer}</span>
+                  </div>
+                </div>
+
+                <!-- Show Listening Transcript in Review Mode! -->
+                ${q.audioScript ? `
+                  <div class="bg-sky-50/80 border border-sky-200 rounded-2xl p-4 mb-4 text-sm">
+                    <div class="font-bold text-sky-800 text-xs mb-1.5 flex items-center justify-between">
+                      <span>🎧 聽力原文逐字稿 (Transcript)：</span>
+                      <button onclick="app.playCounts['${q.id}']=0; app.playQuestionAudio('${q.id}')" class="text-indigo-600 hover:underline">🔊 重聽一次</button>
+                    </div>
+                    <div class="space-y-1 text-slate-700">
+                      ${q.audioScript.map(line => `<div><strong class="text-slate-900">${line.speaker}:</strong> ${line.text}</div>`).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+
+                ${q.questionText ? `<p class="font-bold text-slate-900 text-sm sm:text-base mb-3">${q.questionText}</p>` : ''}
+
+                <!-- Options Review -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4 text-xs sm:text-sm">
+                  ${q.options.map(opt => {
+                    let style = 'bg-slate-50 border-slate-200 text-slate-600';
+                    if (opt.label === q.answer) {
+                      style = 'bg-emerald-50 border-emerald-400 text-emerald-900 font-bold';
+                    } else if (opt.label === userAns && !isCorrect) {
+                      style = 'bg-rose-50 border-rose-400 text-rose-900 line-through';
+                    }
+                    return `
+                      <div class="p-2.5 rounded-xl border ${style}">
+                        <span class="font-extrabold mr-1.5">(${opt.label})</span> ${opt.text}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+
+                <!-- Explanation & Vocab Tip -->
+                <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 text-xs sm:text-sm space-y-2">
+                  <div class="text-slate-800 leading-relaxed">
+                    <span class="font-bold text-amber-900">💡 題目解析：</span>${q.explanation}
+                  </div>
+                  <div class="text-indigo-900 leading-relaxed pt-2 border-t border-amber-200/60">
+                    <span class="font-bold text-indigo-700">📚 升級中級重點：</span>${q.vocabTip}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    `;
+  }
+};
+
+// Boot application
+window.addEventListener('DOMContentLoaded', () => {
+  // Preload speech synthesis voices if available
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.getVoices();
+  }
+  app.init();
+});
+</script>
+</body>
+</html>
